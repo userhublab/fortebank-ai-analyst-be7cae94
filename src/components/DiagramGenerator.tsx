@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MermaidDiagram } from '@/components/MermaidDiagram';
-import { Loader2, Sparkles } from 'lucide-react';
-import * as claude from '@/services/claude';
+import { Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import { aiService } from '@/services/ai';
 import { toast } from 'sonner';
 
-type DiagramType = 'flowchart' | 'sequence' | 'journey' | 'erDiagram';
+type DiagramType = 'flowchart' | 'sequence' | 'journey' | 'erd';
 
 export const DiagramGenerator = () => {
   const [description, setDescription] = useState('');
@@ -22,14 +22,25 @@ export const DiagramGenerator = () => {
       return;
     }
 
+    const config = aiService.getConfig();
+    if (!config) {
+      toast.error('Сначала настройте AI провайдер', {
+        icon: <AlertCircle className="w-4 h-4" />
+      });
+      return;
+    }
+
     setIsGenerating(true);
     try {
-      const diagram = await claude.generateMermaidDiagram(description, diagramType);
+      const diagram = await aiService.generateDiagram(description, diagramType);
       setGeneratedDiagram(diagram);
       toast.success('✨ Диаграмма сгенерирована');
     } catch (error) {
       console.error('Diagram generation error:', error);
-      toast.error('❌ Ошибка генерации. Проверьте API ключ.');
+      const errorMsg = error instanceof Error ? error.message : 'Ошибка генерации';
+      toast.error(errorMsg, {
+        icon: <AlertCircle className="w-4 h-4" />
+      });
     } finally {
       setIsGenerating(false);
     }
