@@ -5,7 +5,7 @@ import { TypewriterText } from "@/components/TypewriterText";
 import { VoiceInput } from "@/components/VoiceInput";
 import { FileUpload } from "@/components/FileUpload";
 import { ApiKeyDialog } from "@/components/ApiKeyDialog";
-import * as claude from "@/services/claude";
+import { aiService, AIProvider } from "@/services/ai";
 import { 
   MessageSquare, 
   Plus, 
@@ -16,7 +16,8 @@ import {
   User,
   Moon,
   Sun,
-  Loader2
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -46,11 +47,16 @@ const Chat = () => {
   ]);
 
   useEffect(() => {
-    const hasApiKey = localStorage.getItem('claude_api_key');
-    if (!hasApiKey) {
+    const config = aiService.getConfig();
+    if (!config) {
       setShowApiKeyDialog(true);
     }
   }, []);
+
+  const handleApiConfig = (provider: AIProvider, apiKey?: string) => {
+    aiService.setConfig({ provider, apiKey });
+    toast.success(`${provider === 'claude' ? 'Claude' : 'Gemini'} configured successfully!`);
+  };
 
   const toggleTheme = () => {
     const newTheme = !isDark;
@@ -67,6 +73,17 @@ const Chat = () => {
   const handleSend = async () => {
     if (!inputValue.trim()) return;
 
+    const config = aiService.getConfig();
+    if (!config) {
+      toast.error('Please configure AI provider first', {
+        action: {
+          label: 'Configure',
+          onClick: () => setShowApiKeyDialog(true)
+        }
+      });
+      return;
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -80,11 +97,11 @@ const Chat = () => {
 
     try {
       const conversationHistory = [...messages, userMessage].map(m => ({
-        role: m.role === 'assistant' ? 'assistant' : 'user',
+        role: m.role,
         content: m.content
       }));
 
-      const response = await claude.sendMessage(conversationHistory);
+      const response = await aiService.chat(conversationHistory);
       
       setIsAiTyping(false);
       const aiMessage: Message = {
@@ -97,9 +114,19 @@ const Chat = () => {
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       setIsAiTyping(false);
-      console.error('Claude API error:', error);
-      toast.error('Ошибка подключения к Claude API. Проверьте API ключ в настройках.');
-      setShowApiKeyDialog(true);
+      console.error('AI error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(errorMessage, {
+        icon: <AlertCircle className="w-4 h-4" />,
+        action: errorMessage.includes('configured') ? {
+          label: 'Configure',
+          onClick: () => setShowApiKeyDialog(true)
+        } : undefined
+      });
+      
+      // Remove user message on error
+      setMessages(prev => prev.filter(m => m.id !== userMessage.id));
     }
   };
 
@@ -300,7 +327,8 @@ const Chat = () => {
 
       <ApiKeyDialog 
         open={showApiKeyDialog} 
-        onClose={() => setShowApiKeyDialog(false)} 
+        onOpenChange={setShowApiKeyDialog}
+        onSave={handleApiConfig}
       />
     </div>
   );

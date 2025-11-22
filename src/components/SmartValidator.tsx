@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, AlertCircle, Loader2, Sparkles } from 'lucide-react';
-import * as claude from '@/services/claude';
+import { aiService } from '@/services/ai';
 import { toast } from 'sonner';
 
 interface ValidationResult {
+  overallScore: number;
   completeness: number;
   clarity: number;
   detail: number;
   consistency: number;
   issues: Array<{
-    section: string;
-    problem: string;
-    suggestion: string;
+    type: string;
+    message: string;
+    section?: string;
   }>;
 }
 
@@ -26,29 +27,32 @@ export const SmartValidator = ({ documentContent, onValidationComplete }: SmartV
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
 
   const handleValidate = async () => {
+    const config = aiService.getConfig();
+    if (!config) {
+      toast.error('Сначала настройте AI провайдер', {
+        icon: <AlertCircle className="w-4 h-4" />
+      });
+      return;
+    }
+
     setIsValidating(true);
     try {
-      const result = await claude.validateDocument(documentContent);
+      const result = await aiService.validateDocument(documentContent);
       setValidationResult(result);
       onValidationComplete?.(result);
       toast.success('✅ Валидация завершена');
     } catch (error) {
       console.error('Validation error:', error);
-      toast.error('❌ Ошибка валидации. Проверьте API ключ.');
+      const errorMsg = error instanceof Error ? error.message : 'Ошибка валидации';
+      toast.error(errorMsg, {
+        icon: <AlertCircle className="w-4 h-4" />
+      });
     } finally {
       setIsValidating(false);
     }
   };
 
-  const averageScore = validationResult
-    ? Math.round(
-        (validationResult.completeness +
-          validationResult.clarity +
-          validationResult.detail +
-          validationResult.consistency) /
-          4
-      )
-    : 0;
+  const averageScore = validationResult?.overallScore || 0;
 
   return (
     <div className="mb-12 p-6 rounded-xl bg-gradient-to-br from-success/20 to-primary/20 border-2 border-success/30">
@@ -121,14 +125,16 @@ export const SmartValidator = ({ documentContent, onValidationComplete }: SmartV
               </h4>
               {validationResult.issues.map((issue, idx) => (
                 <div key={idx} className="bg-background/40 rounded-lg p-3 text-sm">
-                  <div className="font-semibold text-foreground mb-1">
-                    {issue.section}
-                  </div>
+                  {issue.section && (
+                    <div className="font-semibold text-foreground mb-1">
+                      {issue.section}
+                    </div>
+                  )}
                   <div className="text-muted-foreground mb-2">
-                    {issue.problem}
+                    {issue.message}
                   </div>
-                  <div className="text-primary text-xs">
-                    💡 {issue.suggestion}
+                  <div className="text-xs text-primary/80">
+                    {issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠️' : 'ℹ️'} {issue.type}
                   </div>
                 </div>
               ))}

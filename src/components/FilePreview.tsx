@@ -1,4 +1,4 @@
-import { FileText, X, CheckCircle, Loader2 } from 'lucide-react';
+import { FileText, X, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface FilePreviewProps {
@@ -6,19 +6,14 @@ interface FilePreviewProps {
     file: File | null;
     progress: number;
     status: 'idle' | 'uploading' | 'processing' | 'success' | 'error';
-    summary: {
-      requirements: number;
-      goals: number;
-      useCases: number;
-      stakeholders: number;
-    } | null;
+    analysis: string | null;
   };
   onReset: () => void;
-  onStartChat?: (summary: any) => void;
+  onStartChat?: (analysis: any) => void;
 }
 
 export const FilePreview = ({ uploadState, onReset, onStartChat }: FilePreviewProps) => {
-  const { file, progress, status, summary } = uploadState;
+  const { file, progress, status, analysis } = uploadState;
 
   if (!file) return null;
 
@@ -45,15 +40,15 @@ export const FilePreview = ({ uploadState, onReset, onStartChat }: FilePreviewPr
   const getStatusText = () => {
     switch (status) {
       case 'uploading': return `Загрузка... ${progress}%`;
-      case 'processing': return 'Анализирую документ...';
-      case 'success': return `✅ Извлечено ${summary?.requirements || 0} требований`;
-      case 'error': return '❌ Ошибка при обработке';
+      case 'processing': return 'Анализирую документ с помощью AI...';
+      case 'success': return 'Анализ завершен!';
+      case 'error': return 'Ошибка при обработке';
       default: return '';
     }
   };
 
   return (
-    <div className="mb-3 bg-card border border-primary rounded-lg p-4 shadow-md animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="mb-3 bg-card border border-primary rounded-lg p-4 shadow-md animate-fade-in">
       <div className="flex items-start gap-3">
         <FileText className={`w-6 h-6 flex-shrink-0 ${getFileIcon(file.name)}`} />
         
@@ -66,7 +61,7 @@ export const FilePreview = ({ uploadState, onReset, onStartChat }: FilePreviewPr
             
             <button
               onClick={onReset}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-smooth hover-scale"
               title="Удалить"
             >
               <X className="w-4 h-4" />
@@ -74,7 +69,7 @@ export const FilePreview = ({ uploadState, onReset, onStartChat }: FilePreviewPr
           </div>
 
           {/* Progress Bar */}
-          {status !== 'success' && (
+          {status !== 'success' && status !== 'error' && (
             <div className="mb-2">
               <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                 <div
@@ -90,39 +85,39 @@ export const FilePreview = ({ uploadState, onReset, onStartChat }: FilePreviewPr
           )}
 
           {/* Success State */}
-          {status === 'success' && summary && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-green-600 dark:text-green-500">
+          {status === 'success' && analysis && (
+            <div className="space-y-3 animate-fade-in">
+              <div className="flex items-center gap-2 text-success">
                 <CheckCircle className="w-4 h-4" />
                 <p className="text-sm font-medium">{getStatusText()}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-muted/50 rounded p-2">
-                  <p className="text-muted-foreground">Ключевые цели</p>
-                  <p className="font-semibold">{summary.goals}</p>
-                </div>
-                <div className="bg-muted/50 rounded p-2">
-                  <p className="text-muted-foreground">Use Cases</p>
-                  <p className="font-semibold">{summary.useCases}</p>
-                </div>
-                <div className="bg-muted/50 rounded p-2">
-                  <p className="text-muted-foreground">Стейкхолдеры</p>
-                  <p className="font-semibold">{summary.stakeholders}</p>
-                </div>
-                <div className="bg-muted/50 rounded p-2">
-                  <p className="text-muted-foreground">Требования</p>
-                  <p className="font-semibold">{summary.requirements}</p>
-                </div>
+              <div className="bg-success/10 border border-success/20 rounded-lg p-3">
+                <p className="text-sm text-foreground/90 whitespace-pre-wrap line-clamp-4">
+                  {analysis}
+                </p>
               </div>
 
               <Button
-                onClick={() => onStartChat?.(summary)}
-                className="w-full"
+                onClick={() => onStartChat?.(analysis)}
+                className="w-full hover-scale"
                 size="sm"
               >
-                Начать диалог на основе документа
+                Начать диалог на основе анализа
               </Button>
+            </div>
+          )}
+
+          {/* Error State */}
+          {status === 'error' && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-start gap-2 animate-fade-in">
+              <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-destructive">Ошибка обработки</p>
+                <p className="text-xs text-destructive/80 mt-1">
+                  {analysis || 'Не удалось проанализировать файл'}
+                </p>
+              </div>
             </div>
           )}
         </div>

@@ -1,17 +1,12 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import * as claude from '@/services/claude';
+import { aiService } from '@/services/ai';
 
 interface FileUploadState {
   file: File | null;
   progress: number;
   status: 'idle' | 'uploading' | 'processing' | 'success' | 'error';
-  summary: {
-    requirements: number;
-    goals: number;
-    useCases: number;
-    stakeholders: number;
-  } | null;
+  analysis: string | null;
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -22,7 +17,7 @@ export const useFileUpload = () => {
     file: null,
     progress: 0,
     status: 'idle',
-    summary: null
+    analysis: null
   });
 
   const validateFile = useCallback((file: File): boolean => {
@@ -47,11 +42,17 @@ export const useFileUpload = () => {
   const uploadFile = useCallback(async (file: File) => {
     if (!validateFile(file)) return;
 
+    const config = aiService.getConfig();
+    if (!config) {
+      toast.error('Сначала настройте AI провайдер');
+      return;
+    }
+
     setUploadState({
       file,
       progress: 0,
       status: 'uploading',
-      summary: null
+      analysis: null
     });
 
     // Simulate upload progress
@@ -60,45 +61,30 @@ export const useFileUpload = () => {
       setUploadState(prev => ({ ...prev, progress: i }));
     }
 
-    // Process with Claude API
+    // Process with AI
     setUploadState(prev => ({ ...prev, status: 'processing', progress: 100 }));
     
     try {
-      // Read file content
-      const text = await file.text();
-      
-      // Analyze with Claude
-      const analysis = await claude.analyzeDocument(text);
+      const analysis = await aiService.analyzeFile(file.name, file.type);
       
       setUploadState(prev => ({
         ...prev,
         status: 'success',
-        summary: analysis
+        analysis
       }));
 
-      toast.success('✅ Документ успешно обработан', {
-        description: `Извлечено ${analysis.requirements} требований`
-      });
+      toast.success('✅ Документ успешно обработан');
     } catch (error) {
       console.error('Document analysis error:', error);
       
-      // Fallback to mock data if Claude fails
-      const mockSummary = {
-        requirements: Math.floor(Math.random() * 100) + 50,
-        goals: Math.floor(Math.random() * 10) + 3,
-        useCases: Math.floor(Math.random() * 20) + 5,
-        stakeholders: Math.floor(Math.random() * 5) + 2
-      };
-
       setUploadState(prev => ({
         ...prev,
-        status: 'success',
-        summary: mockSummary
+        status: 'error',
+        analysis: 'Ошибка анализа документа'
       }));
 
-      toast.warning('⚠️ Использованы mock данные', {
-        description: 'Не удалось подключиться к Claude API'
-      });
+      const errorMsg = error instanceof Error ? error.message : 'Ошибка анализа';
+      toast.error(errorMsg);
     }
   }, [validateFile]);
 
@@ -107,7 +93,7 @@ export const useFileUpload = () => {
       file: null,
       progress: 0,
       status: 'idle',
-      summary: null
+      analysis: null
     });
   }, []);
 
