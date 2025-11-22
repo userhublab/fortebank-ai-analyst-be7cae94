@@ -3,17 +3,22 @@ import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
 import { useEffect } from 'react';
 
 interface VoiceInputProps {
-  onTranscriptChange: (transcript: string) => void;
+  onTranscript: (transcript: string) => void;
+  onRecordingChange?: (isRecording: boolean) => void;
 }
 
-export const VoiceInput = ({ onTranscriptChange }: VoiceInputProps) => {
+export const VoiceInput = ({ onTranscript, onRecordingChange }: VoiceInputProps) => {
   const { isRecording, transcript, recordingTime, startRecording, stopRecording, isSupported } = useVoiceRecognition();
 
   useEffect(() => {
     if (transcript) {
-      onTranscriptChange(transcript);
+      onTranscript(transcript);
     }
-  }, [transcript, onTranscriptChange]);
+  }, [transcript, onTranscript]);
+
+  useEffect(() => {
+    onRecordingChange?.(isRecording);
+  }, [isRecording, onRecordingChange]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -56,15 +61,16 @@ export const VoiceInput = ({ onTranscriptChange }: VoiceInputProps) => {
             Запись... {formatTime(recordingTime)}
           </div>
 
-          {/* Audio Visualizer */}
-          <div className="flex items-center gap-1">
+          {/* Audio Visualizer - Improved */}
+          <div className="flex items-center gap-1 h-8">
             {[0, 1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="w-0.5 bg-white rounded-full animate-sound-wave"
+                className="w-1 bg-white/90 rounded-full animate-sound-wave"
                 style={{
                   animationDelay: `${i * 100}ms`,
-                  animationDuration: `${600 + i * 100}ms`
+                  animationDuration: `${600 + i * 50}ms`,
+                  height: '8px'
                 }}
               />
             ))}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FileText, Search, Filter, MoreVertical, Eye, Edit, Download, Trash2 } from 'lucide-react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -9,69 +9,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-
-interface Project {
-  id: string;
-  name: string;
-  author: string;
-  date: string;
-  time: string;
-  qualityScore: number;
-  status: 'completed' | 'in-progress' | 'attention';
-}
-
-const mockProjects: Project[] = [
-  {
-    id: '1',
-    name: 'CRM Модернизация',
-    author: 'Иван Петров',
-    date: '21 ноя 2025',
-    time: '14:30',
-    qualityScore: 87,
-    status: 'completed'
-  },
-  {
-    id: '2',
-    name: 'Мобильный банкинг v2.0',
-    author: 'Анна Смирнова',
-    date: '20 ноя 2025',
-    time: '11:15',
-    qualityScore: 92,
-    status: 'completed'
-  },
-  {
-    id: '3',
-    name: 'Система отчетности',
-    author: 'Петр Сидоров',
-    date: '19 ноя 2025',
-    time: '16:45',
-    qualityScore: 75,
-    status: 'in-progress'
-  },
-  {
-    id: '4',
-    name: 'API интеграция',
-    author: 'Мария Иванова',
-    date: '18 ноя 2025',
-    time: '09:20',
-    qualityScore: 55,
-    status: 'attention'
-  },
-  {
-    id: '5',
-    name: 'Документооборот',
-    author: 'Алексей Козлов',
-    date: '17 ноя 2025',
-    time: '13:50',
-    qualityScore: 88,
-    status: 'completed'
-  }
-];
+import { storage, Project } from '@/services/storage';
+import { useNavigate } from 'react-router-dom';
 
 export const ProjectsTable = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const navigate = useNavigate();
 
-  const filteredProjects = mockProjects.filter(project =>
+  useEffect(() => {
+    const loadedProjects = storage.getProjects();
+    setProjects(loadedProjects);
+  }, []);
+
+  const filteredProjects = projects.filter(project =>
     project.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -90,6 +41,16 @@ export const ProjectsTable = () => {
     
     const { label, variant } = config[status];
     return <Badge variant={variant}>{label}</Badge>;
+  };
+
+  const formatDate = (isoDate: string) => {
+    const date = new Date(isoDate);
+    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const formatTime = (isoDate: string) => {
+    const date = new Date(isoDate);
+    return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -142,8 +103,8 @@ export const ProjectsTable = () => {
                 </td>
                 <td className="py-3 md:py-4 px-2 md:px-4 hidden sm:table-cell">
                   <div>
-                    <p className="text-xs md:text-sm">{project.date}</p>
-                    <p className="text-xs text-muted-foreground">{project.time}</p>
+                    <p className="text-xs md:text-sm">{formatDate(project.createdAt)}</p>
+                    <p className="text-xs text-muted-foreground">{formatTime(project.createdAt)}</p>
                   </div>
                 </td>
                 <td className="py-3 md:py-4 px-2 md:px-4">
@@ -164,11 +125,11 @@ export const ProjectsTable = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/document')}>
                         <Eye className="w-4 h-4 mr-2" />
                         Открыть
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/chat')}>
                         <Edit className="w-4 h-4 mr-2" />
                         Редактировать
                       </DropdownMenuItem>
@@ -176,7 +137,15 @@ export const ProjectsTable = () => {
                         <Download className="w-4 h-4 mr-2" />
                         Экспорт
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={() => {
+                          if (confirm('Удалить проект?')) {
+                            storage.deleteProject(project.id);
+                            setProjects(prev => prev.filter(p => p.id !== project.id));
+                          }
+                        }}
+                      >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Удалить
                       </DropdownMenuItem>
@@ -191,7 +160,7 @@ export const ProjectsTable = () => {
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t">
         <p className="text-xs md:text-sm text-muted-foreground">
-          Показано {filteredProjects.length} из {mockProjects.length} проектов
+          Показано {filteredProjects.length} из {projects.length} проектов
         </p>
         <div className="flex items-center gap-1 md:gap-2 flex-wrap justify-center">
           <Button variant="outline" size="sm" disabled className="text-xs md:text-sm">
