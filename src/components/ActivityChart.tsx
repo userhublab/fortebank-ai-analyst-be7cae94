@@ -40,11 +40,11 @@ export const ActivityChart = () => {
   }[period];
 
   return (
-    <div className="bg-card rounded-xl border p-8 shadow-sm">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold">Активность проектов</h3>
+    <div className="bg-card rounded-xl border p-4 md:p-6 lg:p-8 shadow-sm hover:shadow-md transition-smooth animate-fade-in">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <h3 className="text-lg md:text-xl font-bold">Активность проектов</h3>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {(['7', '30', '90'] as Period[]).map((p) => (
             <Button
               key={p}
@@ -58,7 +58,8 @@ export const ActivityChart = () => {
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
+      <div className="w-full overflow-x-auto">
+        <ResponsiveContainer width="100%" height={300} minWidth={300}>
         <AreaChart data={data}>
           <defs>
             <linearGradient id="colorProjects" x1="0" y1="0" x2="0" y2="1">
@@ -95,6 +96,7 @@ export const ActivityChart = () => {
           />
         </AreaChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 };

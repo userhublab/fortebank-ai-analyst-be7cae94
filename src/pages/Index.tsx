@@ -111,93 +111,93 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 h-[72px] bg-background/80 backdrop-blur-md border-b border-border transition-smooth">
-        <div className="container mx-auto h-full flex items-center justify-between px-6">
-          <div className="flex items-center gap-3">
-            <Briefcase className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-primary">AI-BA</span>
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 md:h-[72px] bg-background/80 backdrop-blur-md border-b border-border transition-smooth">
+        <div className="container mx-auto h-full flex items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-2 md:gap-3 hover-scale cursor-pointer">
+            <Briefcase className="h-6 w-6 md:h-8 md:w-8 text-primary transition-smooth" />
+            <span className="text-lg md:text-xl font-bold text-primary">AI-BA</span>
           </div>
           
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#about" className="text-muted-foreground hover:text-primary transition-smooth">О проекте</a>
-            <a href="#features" className="text-muted-foreground hover:text-primary transition-smooth">Возможности</a>
-            <a href="#demo" className="text-muted-foreground hover:text-primary transition-smooth">Демо</a>
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
+            <a href="#about" className="text-sm lg:text-base text-muted-foreground hover:text-primary transition-smooth hover-scale">О проекте</a>
+            <a href="#features" className="text-sm lg:text-base text-muted-foreground hover:text-primary transition-smooth hover-scale">Возможности</a>
+            <a href="#demo" className="text-sm lg:text-base text-muted-foreground hover:text-primary transition-smooth hover-scale">Демо</a>
           </nav>
           
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={() => navigate("/chat")}>
+          <div className="flex items-center gap-2 md:gap-4">
+            <Button variant="outline" size="sm" onClick={() => navigate("/chat")} className="text-xs md:text-sm hover-scale">
               Войти
             </Button>
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-muted transition-smooth"
+              className="p-2 rounded-lg hover:bg-muted transition-smooth hover:scale-110"
               aria-label="Toggle theme"
             >
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              {isDark ? <Sun className="h-4 w-4 md:h-5 md:w-5" /> : <Moon className="h-4 w-4 md:h-5 md:w-5" />}
             </button>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="pt-[120px] pb-20 gradient-hero">
-        <div className="container mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
+      <section className="pt-24 md:pt-32 lg:pt-[120px] pb-12 md:pb-16 lg:pb-20 gradient-hero">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-10 lg:gap-12 items-center">
+            <div className="space-y-6 md:space-y-8 animate-fade-in">
               <Badge className="bg-secondary text-primary border-0 px-4 py-2">
                 <Sparkles className="h-4 w-4 mr-2" />
                 Powered by Claude AI
               </Badge>
               
               <div>
-                <h1 className="text-5xl lg:text-6xl font-bold leading-tight mb-4">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 md:mb-4">
                   AI-Business Analyst
                   <br />
                   <span className="text-primary">for ForteBank</span>
                 </h1>
-                <p className="text-xl text-muted-foreground">
+                <p className="text-base md:text-lg lg:text-xl text-muted-foreground">
                   Автоматизируйте сбор требований с помощью ИИ. От диалога до документа за 30 минут.
                 </p>
               </div>
               
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4">
                 <Button 
                   size="lg" 
-                  className="bg-primary hover:bg-primary/90 transition-smooth shadow-lg hover:shadow-xl hover:scale-105"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 transition-smooth shadow-lg hover:shadow-xl hover:scale-105"
                   onClick={() => navigate("/chat")}
                 >
                   Начать работу
-                  <ChevronRight className="ml-2 h-5 w-5" />
+                  <ChevronRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
                 </Button>
                 <Button 
                   size="lg" 
                   variant="outline"
-                  className="hover:border-primary transition-smooth"
+                  className="w-full sm:w-auto hover:border-primary transition-smooth hover-scale"
                 >
                   Смотреть демо
-                  <Eye className="ml-2 h-5 w-5" />
+                  <Eye className="ml-2 h-4 w-4 md:h-5 md:w-5" />
                 </Button>
               </div>
               
-              <div className="grid grid-cols-3 gap-8 pt-8">
-                <div>
-                  <div className="text-4xl font-bold text-primary mb-1">30 мин</div>
-                  <div className="text-sm text-muted-foreground">вместо 3 дней</div>
+              <div className="grid grid-cols-3 gap-4 md:gap-6 lg:gap-8 pt-6 md:pt-8">
+                <div className="animate-fade-in">
+                  <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-1">30 мин</div>
+                  <div className="text-xs md:text-sm text-muted-foreground">вместо 3 дней</div>
                 </div>
-                <div>
-                  <div className="text-4xl font-bold text-primary mb-1">95%</div>
-                  <div className="text-sm text-muted-foreground">точность</div>
+                <div className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                  <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-1">95%</div>
+                  <div className="text-xs md:text-sm text-muted-foreground">точность</div>
                 </div>
-                <div>
-                  <div className="text-4xl font-bold text-primary mb-1">500+</div>
-                  <div className="text-sm text-muted-foreground">проектов</div>
+                <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                  <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-1">500+</div>
+                  <div className="text-xs md:text-sm text-muted-foreground">проектов</div>
                 </div>
               </div>
             </div>
             
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple-500/20 blur-3xl opacity-30"></div>
-              <div className="relative bg-card border border-border rounded-2xl p-6 shadow-elegant">
+            <div className="relative animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple-500/20 blur-3xl opacity-30 animate-pulse-slow"></div>
+              <div className="relative bg-card border border-border rounded-2xl p-4 md:p-6 shadow-elegant hover:shadow-xl transition-smooth">
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
