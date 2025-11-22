@@ -1,5 +1,10 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MermaidDiagram } from "@/components/MermaidDiagram";
+import { ConfluenceExportModal } from "@/components/ConfluenceExportModal";
+import { useScrollSpy } from "@/hooks/useScrollSpy";
+import { sampleDiagrams } from "@/utils/mermaid-config";
 import { 
   FileText, 
   Download, 
@@ -7,27 +12,31 @@ import {
   Edit, 
   Target,
   Layers,
-  BookOpen,
   GitBranch,
   TrendingUp,
   Activity,
   CheckCircle,
   User,
-  ArrowLeft
+  ArrowLeft,
+  Palette
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Document = () => {
   const navigate = useNavigate();
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
 
   const navLinks = [
     { id: "description", label: "Описание проекта" },
     { id: "goals", label: "Цели и задачи" },
     { id: "scope", label: "Scope (Границы)" },
-    { id: "business-rules", label: "Бизнес-правила" },
     { id: "use-cases", label: "Use Cases" },
     { id: "kpi", label: "KPI и метрики" },
+    { id: "diagrams", label: "Диаграммы" },
   ];
+
+  const activeSection = useScrollSpy(navLinks.map(link => link.id));
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -50,7 +59,11 @@ const Document = () => {
             <a
               key={link.id}
               href={`#${link.id}`}
-              className="block px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-accent hover:text-primary transition-smooth"
+              className={`block px-3 py-2 rounded-lg text-sm transition-smooth ${
+                activeSection === link.id
+                  ? 'bg-primary text-primary-foreground font-semibold border-l-4 border-primary'
+                  : 'text-muted-foreground hover:bg-accent hover:text-primary'
+              }`}
             >
               {link.label}
             </a>
@@ -62,7 +75,12 @@ const Document = () => {
             <Download className="mr-2 h-4 w-4" />
             Экспорт PDF
           </Button>
-          <Button variant="outline" className="w-full" size="sm">
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            size="sm"
+            onClick={() => setIsExportModalOpen(true)}
+          >
             <Upload className="mr-2 h-4 w-4" />
             В Confluence
           </Button>
@@ -295,6 +313,33 @@ const Document = () => {
             </div>
           </section>
 
+          {/* Section 6: Diagrams */}
+          <section id="diagrams" className="mb-12 scroll-mt-24">
+            <div className="flex items-center gap-3 mb-6">
+              <Palette className="h-6 w-6 text-primary" />
+              <h2 className="text-3xl font-bold text-primary">6. Диаграммы и визуализация</h2>
+              <Badge className="bg-purple-500">AI Generated</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground italic mb-8">Автоматически сгенерировано AI Visual Designer</p>
+
+            <div className="space-y-8">
+              <div className="group">
+                <h3 className="text-xl font-semibold mb-4">Процесс обработки заявки (BPMN)</h3>
+                <MermaidDiagram chart={sampleDiagrams.bpmn} title="BPMN Process" isDark={isDark} />
+              </div>
+
+              <div className="group">
+                <h3 className="text-xl font-semibold mb-4">Взаимодействие компонентов системы</h3>
+                <MermaidDiagram chart={sampleDiagrams.sequence} title="Sequence Diagram" isDark={isDark} />
+              </div>
+
+              <div className="group">
+                <h3 className="text-xl font-semibold mb-4">Путь клиента (Customer Journey)</h3>
+                <MermaidDiagram chart={sampleDiagrams.journey} title="User Journey" isDark={isDark} />
+              </div>
+            </div>
+          </section>
+
           {/* Document Footer */}
           <footer className="mt-16 pt-8 border-t-2 border-border text-sm text-muted-foreground">
             <div className="flex justify-between items-center">
@@ -305,6 +350,12 @@ const Document = () => {
           </footer>
         </div>
       </main>
+
+      <ConfluenceExportModal 
+        open={isExportModalOpen}
+        onOpenChange={setIsExportModalOpen}
+        documentTitle="Бизнес-требования: CRM Модернизация"
+      />
     </div>
   );
 };
