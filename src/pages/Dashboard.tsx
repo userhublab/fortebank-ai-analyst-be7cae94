@@ -31,43 +31,43 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b h-[72px]">
-        <div className="container mx-auto px-6 h-full flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">FB</span>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b h-16 md:h-[72px] transition-smooth">
+        <div className="container mx-auto px-4 md:px-6 h-full flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 md:gap-3 hover-scale">
+            <div className="w-7 h-7 md:w-8 md:h-8 bg-primary rounded-lg flex items-center justify-center transition-smooth">
+              <span className="text-white font-bold text-xs md:text-sm">FB</span>
             </div>
-            <span className="text-xl font-bold text-primary">AI-BA</span>
+            <span className="text-lg md:text-xl font-bold text-primary">AI-BA</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6">
-            <Link to="/chat" className="text-muted-foreground hover:text-primary transition-colors">
+          <nav className="hidden md:flex items-center gap-4 lg:gap-6">
+            <Link to="/chat" className="text-sm lg:text-base text-muted-foreground hover:text-primary transition-smooth hover-scale">
               Chat
             </Link>
-            <Link to="/document" className="text-muted-foreground hover:text-primary transition-colors">
+            <Link to="/document" className="text-sm lg:text-base text-muted-foreground hover:text-primary transition-smooth hover-scale">
               Документ
             </Link>
-            <Link to="/dashboard" className="text-primary font-semibold">
+            <Link to="/dashboard" className="text-sm lg:text-base text-primary font-semibold">
               Dashboard
             </Link>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <button
               onClick={toggleTheme}
-              className="w-10 h-10 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-all duration-300 hover:rotate-180"
+              className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-all duration-300 hover:rotate-180 hover:scale-110"
               title={isDark ? 'Светлая тема' : 'Темная тема'}
             >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {isDark ? <Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Moon className="w-4 h-4 md:w-5 md:h-5" />}
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="pt-[96px] pb-12 px-6 container mx-auto max-w-7xl">
+      <main className="pt-20 md:pt-[96px] pb-8 md:pb-12 px-4 md:px-6 container mx-auto max-w-7xl">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
           <StatsCard
             icon={Briefcase}
             iconColor="text-primary"

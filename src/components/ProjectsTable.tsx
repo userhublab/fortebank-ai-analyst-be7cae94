@@ -93,69 +93,70 @@ export const ProjectsTable = () => {
   };
 
   return (
-    <div className="bg-card rounded-xl border p-8 shadow-sm">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold">Последние проекты</h3>
+    <div className="bg-card rounded-xl border p-4 md:p-6 lg:p-8 shadow-sm hover:shadow-md transition-smooth animate-fade-in">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <h3 className="text-lg md:text-xl font-bold">Последние проекты</h3>
         
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-initial">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Поиск..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 w-[250px]"
+              className="pl-9 w-full sm:w-[200px] md:w-[250px]"
             />
           </div>
-          <Button variant="outline" size="icon">
+          <Button variant="outline" size="icon" className="hover-scale">
             <Filter className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="overflow-x-auto -mx-4 md:mx-0">
+        <table className="w-full min-w-[640px]">
           <thead>
             <tr className="border-b">
-              <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Название проекта</th>
-              <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Дата создания</th>
-              <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Quality Score</th>
-              <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Статус</th>
-              <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Действия</th>
+              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-semibold text-muted-foreground">Название проекта</th>
+              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-semibold text-muted-foreground hidden sm:table-cell">Дата создания</th>
+              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-semibold text-muted-foreground">Quality Score</th>
+              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-semibold text-muted-foreground hidden md:table-cell">Статус</th>
+              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-semibold text-muted-foreground">Действия</th>
             </tr>
           </thead>
           <tbody>
-            {filteredProjects.map((project) => (
+            {filteredProjects.map((project, index) => (
               <tr
                 key={project.id}
-                className="border-b hover:bg-muted/50 transition-colors cursor-pointer"
+                className="border-b hover:bg-muted/50 transition-smooth cursor-pointer animate-fade-in"
+                style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <td className="py-4 px-4">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-5 h-5 text-primary flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold">{project.name}</p>
-                      <p className="text-xs text-muted-foreground">Автор: {project.author}</p>
+                <td className="py-3 md:py-4 px-2 md:px-4">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <FileText className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm md:text-base truncate">{project.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">Автор: {project.author}</p>
                     </div>
                   </div>
                 </td>
-                <td className="py-4 px-4">
+                <td className="py-3 md:py-4 px-2 md:px-4 hidden sm:table-cell">
                   <div>
-                    <p className="text-sm">{project.date}</p>
+                    <p className="text-xs md:text-sm">{project.date}</p>
                     <p className="text-xs text-muted-foreground">{project.time}</p>
                   </div>
                 </td>
-                <td className="py-4 px-4">
-                  <div className="flex items-center gap-2">
-                    <div className={`text-2xl font-bold ${getScoreColor(project.qualityScore)}`}>
+                <td className="py-3 md:py-4 px-2 md:px-4">
+                  <div className="flex items-center gap-1 md:gap-2">
+                    <div className={`text-xl md:text-2xl font-bold ${getScoreColor(project.qualityScore)}`}>
                       {project.qualityScore}%
                     </div>
                   </div>
                 </td>
-                <td className="py-4 px-4">
+                <td className="py-3 md:py-4 px-2 md:px-4 hidden md:table-cell">
                   {getStatusBadge(project.status)}
                 </td>
-                <td className="py-4 px-4">
+                <td className="py-3 md:py-4 px-2 md:px-4">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
@@ -188,19 +189,19 @@ export const ProjectsTable = () => {
         </table>
       </div>
 
-      <div className="flex items-center justify-between mt-6 pt-4 border-t">
-        <p className="text-sm text-muted-foreground">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t">
+        <p className="text-xs md:text-sm text-muted-foreground">
           Показано {filteredProjects.length} из {mockProjects.length} проектов
         </p>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled>
-            ← Предыдущая
+        <div className="flex items-center gap-1 md:gap-2 flex-wrap justify-center">
+          <Button variant="outline" size="sm" disabled className="text-xs md:text-sm">
+            ← Пред.
           </Button>
-          <Button variant="default" size="sm">1</Button>
-          <Button variant="outline" size="sm">2</Button>
-          <Button variant="outline" size="sm">3</Button>
-          <Button variant="outline" size="sm">
-            Следующая →
+          <Button variant="default" size="sm" className="text-xs md:text-sm hover-scale">1</Button>
+          <Button variant="outline" size="sm" className="text-xs md:text-sm hover-scale">2</Button>
+          <Button variant="outline" size="sm" className="text-xs md:text-sm hover-scale hidden sm:inline-flex">3</Button>
+          <Button variant="outline" size="sm" className="text-xs md:text-sm">
+            След. →
           </Button>
         </div>
       </div>
