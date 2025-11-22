@@ -5,6 +5,7 @@ import { TypewriterText } from "@/components/TypewriterText";
 import { VoiceInput } from "@/components/VoiceInput";
 import { FileUpload } from "@/components/FileUpload";
 import { ApiKeyDialog } from "@/components/ApiKeyDialog";
+import { NewProjectModal, ProjectConfig } from "@/components/NewProjectModal";
 import { aiService, AIProvider } from "@/services/ai";
 import { storage } from "@/services/storage";
 import { 
@@ -39,6 +40,7 @@ const Chat = () => {
   const [inputValue, setInputValue] = useState("");
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
+  const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [aiProvider, setAiProvider] = useState<AIProvider | null>(null);
@@ -81,6 +83,33 @@ const Chat = () => {
     aiService.setConfig({ provider, apiKey });
     setAiProvider(provider);
     toast.success(`${provider === 'claude' ? 'Claude' : 'Gemini'} настроен успешно!`);
+  };
+
+  const handleCreateProject = (config: ProjectConfig) => {
+    const projectName = config.name || 
+      (config.file ? config.file.name.replace(/\.[^/.]+$/, "") : `Новый проект ${new Date().toLocaleDateString()}`);
+    
+    const newProject = storage.createNewProject(projectName);
+    
+    // Add initial context based on config
+    if (config.type || config.department || config.priority) {
+      const contextMessage = `Проект создан с параметрами:\n${
+        config.type ? `Тип: ${config.type}\n` : ''
+      }${
+        config.department ? `Департамент: ${config.department}\n` : ''
+      }${
+        config.priority ? `Приоритет: ${config.priority}` : ''
+      }`;
+      
+      storage.addMessageToProject(newProject.id, 'assistant', contextMessage);
+    }
+
+    toast.success(`✅ Проект создан`, {
+      description: `"${projectName}" готов к работе`
+    });
+
+    // Navigate to the new project
+    window.location.reload();
   };
 
   const toggleTheme = () => {
@@ -186,7 +215,11 @@ const Chat = () => {
       {/* Sidebar */}
       <aside className="w-[280px] border-r border-border bg-muted/30 flex flex-col">
         <div className="p-4 border-b border-border">
-          <Button className="w-full bg-primary hover:bg-primary/90 transition-smooth" size="lg">
+          <Button 
+            className="w-full bg-primary hover:bg-primary/90 transition-smooth" 
+            size="lg"
+            onClick={() => setShowNewProjectModal(true)}
+          >
             <Plus className="mr-2 h-5 w-5" />
             Новый проект
           </Button>
@@ -383,6 +416,12 @@ const Chat = () => {
         open={showApiKeyDialog} 
         onOpenChange={setShowApiKeyDialog}
         onSave={handleApiConfig}
+      />
+
+      <NewProjectModal
+        open={showNewProjectModal}
+        onOpenChange={setShowNewProjectModal}
+        onCreateProject={handleCreateProject}
       />
     </div>
   );
