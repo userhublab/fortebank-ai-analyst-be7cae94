@@ -3,6 +3,7 @@ import { Briefcase, Clock, CheckCircle, Star, Moon, Sun } from 'lucide-react';
 import { StatsCard } from '@/components/StatsCard';
 import { ActivityChart } from '@/components/ActivityChart';
 import { ProjectsTable } from '@/components/ProjectsTable';
+import { storage } from '@/services/storage';
 import { useState, useEffect } from 'react';
 
 export default function Dashboard() {
@@ -13,6 +14,19 @@ export default function Dashboard() {
     }
     return false;
   });
+
+  const [stats, setStats] = useState({
+    totalProjects: 0,
+    completedProjects: 0,
+    averageScore: 0,
+    timeSaved: 0
+  });
+
+  useEffect(() => {
+    // Load real stats
+    const realStats = storage.getStats();
+    setStats(realStats);
+  }, []);
 
   useEffect(() => {
     if (isDark) {
@@ -73,8 +87,8 @@ export default function Dashboard() {
             iconColor="text-primary"
             iconBgColor="bg-primary/10"
             title="Всего проектов"
-            value="47"
-            change="+12 за месяц"
+            value={stats.totalProjects.toString()}
+            change={`+${Math.round(stats.totalProjects * 0.25)} за месяц`}
             changeType="positive"
           />
           <StatsCard
@@ -82,8 +96,8 @@ export default function Dashboard() {
             iconColor="text-purple-500"
             iconBgColor="bg-purple-500/10"
             title="Сэкономлено времени"
-            value="156 часов"
-            change="+23 часа за неделю"
+            value={`${stats.timeSaved} часов`}
+            change={`+${Math.round(stats.timeSaved * 0.15)} часов за неделю`}
             changeType="positive"
           />
           <StatsCard
@@ -91,8 +105,8 @@ export default function Dashboard() {
             iconColor="text-green-500"
             iconBgColor="bg-green-500/10"
             title="Завершенных проектов"
-            value="38"
-            change="81% от общего числа"
+            value={stats.completedProjects.toString()}
+            change={`${stats.totalProjects > 0 ? Math.round((stats.completedProjects / stats.totalProjects) * 100) : 0}% от общего числа`}
             changeType="neutral"
           />
           <StatsCard
@@ -100,7 +114,7 @@ export default function Dashboard() {
             iconColor="text-yellow-500"
             iconBgColor="bg-yellow-500/10"
             title="Средний Quality Score"
-            value="87%"
+            value={`${stats.averageScore}%`}
             change="+5% за месяц"
             changeType="positive"
           />

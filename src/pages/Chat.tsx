@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TypewriterText } from "@/components/TypewriterText";
@@ -6,6 +6,7 @@ import { VoiceInput } from "@/components/VoiceInput";
 import { FileUpload } from "@/components/FileUpload";
 import { ApiKeyDialog } from "@/components/ApiKeyDialog";
 import { aiService, AIProvider } from "@/services/ai";
+import { storage } from "@/services/storage";
 import { 
   MessageSquare, 
   Plus, 
@@ -17,7 +18,9 @@ import {
   Moon,
   Sun,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Mic,
+  MicOff
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -36,6 +39,10 @@ const Chat = () => {
   const [inputValue, setInputValue] = useState("");
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -47,11 +54,25 @@ const Chat = () => {
   ]);
 
   useEffect(() => {
+    // Load or create current project
+    let projectId = storage.getCurrentProject();
+    if (!projectId) {
+      const newProject = storage.createNewProject('Новый проект', 'Текущий пользователь');
+      projectId = newProject.id;
+    }
+    setCurrentProjectId(projectId);
+
+    // Check AI config
     const config = aiService.getConfig();
     if (!config) {
       setShowApiKeyDialog(true);
     }
   }, []);
+
+  useEffect(() => {
+    // Auto-scroll to bottom when new messages arrive
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleApiConfig = (provider: AIProvider, apiKey?: string) => {
     aiService.setConfig({ provider, apiKey });
@@ -95,6 +116,11 @@ const Chat = () => {
     setInputValue("");
     setIsAiTyping(true);
 
+    // Save to project
+    if (currentProjectId) {
+      storage.addMessageToProject(currentProjectId, 'user', inputValue);
+    }
+
     try {
       const conversationHistory = [...messages, userMessage].map(m => ({
         role: m.role,
@@ -112,6 +138,11 @@ const Chat = () => {
         isTyping: true
       };
       setMessages(prev => [...prev, aiMessage]);
+
+      // Save AI response
+      if (currentProjectId) {
+        storage.addMessageToProject(currentProjectId, 'assistant', response);
+      }
     } catch (error) {
       setIsAiTyping(false);
       console.error('AI error:', error);
@@ -295,7 +326,10 @@ const Chat = () => {
           <FileUpload onFileProcessed={handleFileProcessed} />
           
           <div className="flex items-end gap-3 mt-3">
-            <VoiceInput onTranscriptChange={handleVoiceTranscript} />
+            <VoiceInput 
+              onTranscript={handleVoiceTranscript}
+              onRecordingChange={setIsRecording}
+            />
 
             <div className="flex-1 relative">
               <Input
