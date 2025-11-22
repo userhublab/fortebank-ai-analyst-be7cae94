@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
+import * as claude from '@/services/claude';
 
 interface FileUploadState {
   file: File | null;
@@ -59,27 +60,46 @@ export const useFileUpload = () => {
       setUploadState(prev => ({ ...prev, progress: i }));
     }
 
-    // Simulate processing
+    // Process with Claude API
     setUploadState(prev => ({ ...prev, status: 'processing', progress: 100 }));
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    try {
+      // Read file content
+      const text = await file.text();
+      
+      // Analyze with Claude
+      const analysis = await claude.analyzeDocument(text);
+      
+      setUploadState(prev => ({
+        ...prev,
+        status: 'success',
+        summary: analysis
+      }));
 
-    // Simulate success with mock data
-    const mockSummary = {
-      requirements: Math.floor(Math.random() * 100) + 50,
-      goals: Math.floor(Math.random() * 10) + 3,
-      useCases: Math.floor(Math.random() * 20) + 5,
-      stakeholders: Math.floor(Math.random() * 5) + 2
-    };
+      toast.success('✅ Документ успешно обработан', {
+        description: `Извлечено ${analysis.requirements} требований`
+      });
+    } catch (error) {
+      console.error('Document analysis error:', error);
+      
+      // Fallback to mock data if Claude fails
+      const mockSummary = {
+        requirements: Math.floor(Math.random() * 100) + 50,
+        goals: Math.floor(Math.random() * 10) + 3,
+        useCases: Math.floor(Math.random() * 20) + 5,
+        stakeholders: Math.floor(Math.random() * 5) + 2
+      };
 
-    setUploadState(prev => ({
-      ...prev,
-      status: 'success',
-      summary: mockSummary
-    }));
+      setUploadState(prev => ({
+        ...prev,
+        status: 'success',
+        summary: mockSummary
+      }));
 
-    toast.success('✅ Документ успешно обработан', {
-      description: `Извлечено ${mockSummary.requirements} требований`
-    });
+      toast.warning('⚠️ Использованы mock данные', {
+        description: 'Не удалось подключиться к Claude API'
+      });
+    }
   }, [validateFile]);
 
   const resetUpload = useCallback(() => {

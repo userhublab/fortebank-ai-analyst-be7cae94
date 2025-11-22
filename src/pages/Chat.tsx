@@ -1,9 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TypewriterText } from "@/components/TypewriterText";
 import { VoiceInput } from "@/components/VoiceInput";
 import { FileUpload } from "@/components/FileUpload";
+import { ApiKeyDialog } from "@/components/ApiKeyDialog";
+import * as claude from "@/services/claude";
 import { 
   MessageSquare, 
   Plus, 
@@ -32,6 +34,7 @@ const Chat = () => {
   const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
   const [inputValue, setInputValue] = useState("");
   const [isAiTyping, setIsAiTyping] = useState(false);
+  const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -41,6 +44,13 @@ const Chat = () => {
       isTyping: true
     }
   ]);
+
+  useEffect(() => {
+    const hasApiKey = localStorage.getItem('claude_api_key');
+    if (!hasApiKey) {
+      setShowApiKeyDialog(true);
+    }
+  }, []);
 
   const toggleTheme = () => {
     const newTheme = !isDark;
@@ -54,7 +64,7 @@ const Chat = () => {
     }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!inputValue.trim()) return;
 
     const userMessage: Message = {
@@ -68,18 +78,29 @@ const Chat = () => {
     setInputValue("");
     setIsAiTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const conversationHistory = [...messages, userMessage].map(m => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: m.content
+      }));
+
+      const response = await claude.sendMessage(conversationHistory);
+      
       setIsAiTyping(false);
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "Отлично! Чтобы лучше понять ваш проект, позвольте задать несколько уточняющих вопросов:\n\n1. Какие основные бизнес-цели вы хотите достичь?\n2. Кто будет основными пользователями системы?\n3. Есть ли какие-то существующие системы, с которыми нужна интеграция?",
+        content: response,
         timestamp: new Date(),
         isTyping: true
       };
       setMessages(prev => [...prev, aiMessage]);
-    }, 1500);
+    } catch (error) {
+      setIsAiTyping(false);
+      console.error('Claude API error:', error);
+      toast.error('Ошибка подключения к Claude API. Проверьте API ключ в настройках.');
+      setShowApiKeyDialog(true);
+    }
   };
 
   const handleVoiceTranscript = useCallback((transcript: string) => {
@@ -141,9 +162,14 @@ const Chat = () => {
         </div>
 
         <div className="p-4 border-t border-border">
-          <Button variant="ghost" className="w-full justify-start" size="sm">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start" 
+            size="sm"
+            onClick={() => setShowApiKeyDialog(true)}
+          >
             <Settings className="mr-2 h-4 w-4" />
-            Настройки
+            API Key
           </Button>
           <div className="flex items-center gap-3 mt-4 p-2 rounded-lg hover:bg-accent transition-smooth cursor-pointer">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -271,6 +297,11 @@ const Chat = () => {
           </div>
         </div>
       </main>
+
+      <ApiKeyDialog 
+        open={showApiKeyDialog} 
+        onClose={() => setShowApiKeyDialog(false)} 
+      />
     </div>
   );
 };
