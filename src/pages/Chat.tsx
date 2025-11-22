@@ -1,39 +1,44 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { TypewriterText } from "@/components/TypewriterText";
+import { VoiceInput } from "@/components/VoiceInput";
+import { FileUpload } from "@/components/FileUpload";
 import { 
   MessageSquare, 
   Plus, 
   Send, 
-  Mic, 
-  Paperclip, 
   Settings, 
   FileText,
   Sparkles,
   User,
   Moon,
-  Sun
+  Sun,
+  Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: Date;
+  isTyping?: boolean;
 }
 
 const Chat = () => {
   const navigate = useNavigate();
   const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
   const [inputValue, setInputValue] = useState("");
+  const [isAiTyping, setIsAiTyping] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       role: "assistant",
       content: "Здравствуйте! Я AI-Business Analyst от ForteBank. Помогу вам собрать и структурировать бизнес-требования для вашего проекта. Расскажите, над чем вы работаете?",
-      timestamp: new Date()
+      timestamp: new Date(),
+      isTyping: true
     }
   ]);
 
@@ -61,18 +66,37 @@ const Chat = () => {
 
     setMessages(prev => [...prev, userMessage]);
     setInputValue("");
+    setIsAiTyping(true);
 
     // Simulate AI response
     setTimeout(() => {
+      setIsAiTyping(false);
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: "Отлично! Чтобы лучше понять ваш проект, позвольте задать несколько уточняющих вопросов:\n\n1. Какие основные бизнес-цели вы хотите достичь?\n2. Кто будет основными пользователями системы?\n3. Есть ли какие-то существующие системы, с которыми нужна интеграция?",
-        timestamp: new Date()
+        timestamp: new Date(),
+        isTyping: true
       };
       setMessages(prev => [...prev, aiMessage]);
-    }, 1000);
+    }, 1500);
   };
+
+  const handleVoiceTranscript = useCallback((transcript: string) => {
+    setInputValue(transcript);
+  }, []);
+
+  const handleFileProcessed = useCallback((summary: any) => {
+    const summaryMessage: Message = {
+      id: Date.now().toString(),
+      role: "assistant",
+      content: `Я проанализировал ваш документ и нашел следующее:\n\n📋 Извлечено ${summary.requirements} требований\n🎯 ${summary.goals} ключевых целей\n📊 ${summary.useCases} Use Cases\n👥 ${summary.stakeholders} стейкхолдера\n\nГотов помочь структурировать эти требования в полноценный документ. Хотите начать?`,
+      timestamp: new Date(),
+      isTyping: true
+    };
+    setMessages(prev => [...prev, summaryMessage]);
+    toast.success('✅ Документ успешно обработан');
+  }, []);
 
   return (
     <div className="flex h-screen bg-background">
@@ -177,30 +201,48 @@ const Chat = () => {
                     <Sparkles className="h-4 w-4 text-primary" />
                   </div>
                   <div className="bg-card border border-border rounded-2xl rounded-tl-sm p-4 shadow-sm">
-                    <p className="text-foreground leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    {message.isTyping ? (
+                      <TypewriterText
+                        text={message.content}
+                        className="text-foreground leading-relaxed whitespace-pre-wrap"
+                      />
+                    ) : (
+                      <p className="text-foreground leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    )}
                   </div>
                 </div>
               )}
 
               {message.role === "user" && (
                 <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-sm p-4 max-w-[70%] shadow-lg">
-                  <p className="leading-relaxed">{message.content}</p>
+                  <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
                 </div>
               )}
             </div>
           ))}
+          
+          {isAiTyping && (
+            <div className="flex gap-3 max-w-[70%]">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="h-4 w-4 text-primary" />
+              </div>
+              <div className="bg-card border border-border rounded-2xl rounded-tl-sm p-4 shadow-sm">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Input Area */}
         <div className="border-t border-border bg-card p-4">
-          <div className="flex items-end gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full hover:bg-destructive hover:text-destructive-foreground transition-smooth"
-            >
-              <Mic className="h-5 w-5" />
-            </Button>
+          <FileUpload onFileProcessed={handleFileProcessed} />
+          
+          <div className="flex items-end gap-3 mt-3">
+            <VoiceInput onTranscriptChange={handleVoiceTranscript} />
 
             <div className="flex-1 relative">
               <Input
@@ -213,17 +255,10 @@ const Chat = () => {
                   }
                 }}
                 placeholder="Опишите вашу задачу или нажмите 🎤 для голосового ввода..."
-                className="min-h-[48px] pr-12 resize-none bg-muted/50 border-border focus:border-primary transition-smooth"
+                className="min-h-[48px] resize-none bg-muted/50 border-border focus:border-primary transition-smooth"
+                autoFocus
               />
             </div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full"
-            >
-              <Paperclip className="h-5 w-5" />
-            </Button>
 
             <Button
               onClick={handleSend}
@@ -231,7 +266,7 @@ const Chat = () => {
               size="icon"
               className="rounded-full bg-primary hover:bg-primary/90 transition-smooth hover:scale-105 disabled:opacity-50"
             >
-              <Send className="h-5 w-5" />
+              {isAiTyping ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
           </div>
         </div>
