@@ -41,6 +41,7 @@ const Chat = () => {
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [aiProvider, setAiProvider] = useState<AIProvider | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const [messages, setMessages] = useState<Message[]>([
@@ -66,6 +67,8 @@ const Chat = () => {
     const config = aiService.getConfig();
     if (!config) {
       setShowApiKeyDialog(true);
+    } else {
+      setAiProvider(config.provider);
     }
   }, []);
 
@@ -76,7 +79,8 @@ const Chat = () => {
 
   const handleApiConfig = (provider: AIProvider, apiKey?: string) => {
     aiService.setConfig({ provider, apiKey });
-    toast.success(`${provider === 'claude' ? 'Claude' : 'Gemini'} configured successfully!`);
+    setAiProvider(provider);
+    toast.success(`${provider === 'claude' ? 'Claude' : 'Gemini'} настроен успешно!`);
   };
 
   const toggleTheme = () => {
@@ -227,7 +231,12 @@ const Chat = () => {
             onClick={() => setShowApiKeyDialog(true)}
           >
             <Settings className="mr-2 h-4 w-4" />
-            API Key
+            <span className="flex-1 text-left">Настройки AI</span>
+            {aiProvider && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                {aiProvider === 'claude' ? 'Claude' : 'Gemini'}
+              </span>
+            )}
           </Button>
           <div className="flex items-center gap-3 mt-4 p-2 rounded-lg hover:bg-accent transition-smooth cursor-pointer">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -254,6 +263,17 @@ const Chat = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            {!aiProvider && (
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={() => setShowApiKeyDialog(true)}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white"
+              >
+                <AlertCircle className="mr-2 h-4 w-4" />
+                Настроить AI
+              </Button>
+            )}
             <Button 
               variant="outline" 
               size="sm"
