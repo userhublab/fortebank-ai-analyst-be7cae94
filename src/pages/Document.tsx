@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MermaidDiagram } from "@/components/MermaidDiagram";
 import { ConfluenceExportModal } from "@/components/ConfluenceExportModal";
+import { SmartValidator } from "@/components/SmartValidator";
+import { DiagramGenerator } from "@/components/DiagramGenerator";
 import { useScrollSpy } from "@/hooks/useScrollSpy";
 import { sampleDiagrams } from "@/utils/mermaid-config";
 import { 
@@ -110,49 +112,10 @@ const Document = () => {
             </div>
           </header>
 
-          {/* Quality Score Dashboard */}
-          <div className="mb-12 p-6 rounded-xl bg-gradient-to-br from-success/20 to-primary/20 border-2 border-success/30">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <CheckCircle className="h-8 w-8 text-success" />
-                  <span className="text-5xl font-bold">87%</span>
-                </div>
-                <p className="text-sm opacity-90">Quality Score</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-lg font-semibold mb-1">92%</div>
-                  <p className="text-xs">Полнота</p>
-                  <div className="h-2 bg-background/20 rounded-full mt-2">
-                    <div className="h-full bg-success rounded-full" style={{ width: '92%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-lg font-semibold mb-1">85%</div>
-                  <p className="text-xs">Ясность</p>
-                  <div className="h-2 bg-background/20 rounded-full mt-2">
-                    <div className="h-full bg-primary rounded-full" style={{ width: '85%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-lg font-semibold mb-1">88%</div>
-                  <p className="text-xs">Детализация</p>
-                  <div className="h-2 bg-background/20 rounded-full mt-2">
-                    <div className="h-full bg-purple-500 rounded-full" style={{ width: '88%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-lg font-semibold mb-1">83%</div>
-                  <p className="text-xs">Согласованность</p>
-                  <div className="h-2 bg-background/20 rounded-full mt-2">
-                    <div className="h-full bg-secondary rounded-full" style={{ width: '83%' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Smart Validator */}
+          <SmartValidator 
+            documentContent="CRM Модернизация - полный текст документа для анализа..."
+          />
 
           {/* Section 1: Description */}
           <section id="description" className="mb-12 scroll-mt-24">
@@ -336,6 +299,10 @@ const Document = () => {
               <div className="group">
                 <h3 className="text-xl font-semibold mb-4">Путь клиента (Customer Journey)</h3>
                 <MermaidDiagram chart={sampleDiagrams.journey} title="User Journey" isDark={isDark} />
+              </div>
+
+              <div className="mt-8">
+                <DiagramGenerator />
               </div>
             </div>
           </section>
