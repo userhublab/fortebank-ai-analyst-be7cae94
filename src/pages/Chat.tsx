@@ -65,11 +65,9 @@ const Chat = () => {
     }
     setCurrentProjectId(projectId);
 
-    // Check AI config
+    // Check AI config (no longer required, will use mock if not configured)
     const config = aiService.getConfig();
-    if (!config) {
-      setShowApiKeyDialog(true);
-    } else {
+    if (config) {
       setAiProvider(config.provider);
     }
   }, []);
@@ -126,17 +124,6 @@ const Chat = () => {
 
   const handleSend = async () => {
     if (!inputValue.trim()) return;
-
-    const config = aiService.getConfig();
-    if (!config) {
-      toast.error('Please configure AI provider first', {
-        action: {
-          label: 'Configure',
-          onClick: () => setShowApiKeyDialog(true)
-        }
-      });
-      return;
-    }
 
     const userMessage: Message = {
       id: Date.now().toString(),

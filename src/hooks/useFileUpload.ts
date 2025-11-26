@@ -42,12 +42,6 @@ export const useFileUpload = () => {
   const uploadFile = useCallback(async (file: File) => {
     if (!validateFile(file)) return;
 
-    const config = aiService.getConfig();
-    if (!config) {
-      toast.error('Сначала настройте AI провайдер');
-      return;
-    }
-
     setUploadState({
       file,
       progress: 0,
