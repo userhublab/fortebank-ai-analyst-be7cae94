@@ -27,14 +27,6 @@ export const SmartValidator = ({ documentContent, onValidationComplete }: SmartV
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
 
   const handleValidate = async () => {
-    const config = aiService.getConfig();
-    if (!config) {
-      toast.error('Сначала настройте AI провайдер', {
-        icon: <AlertCircle className="w-4 h-4" />
-      });
-      return;
-    }
-
     setIsValidating(true);
     try {
       const result = await aiService.validateDocument(documentContent);

@@ -41,7 +41,10 @@ class AIService {
   async chat(messages: AIMessage[]): Promise<string> {
     const config = this.getConfig();
     if (!config) {
-      throw new Error('AI not configured. Please configure Claude or Gemini.');
+      // Use mock responses if not configured
+      const { getMockResponse } = await import('./mockAi');
+      const lastUserMessage = messages.filter(m => m.role === 'user').pop();
+      return getMockResponse(lastUserMessage?.content || '');
     }
 
     if (config.provider === 'claude') {
@@ -59,7 +62,11 @@ class AIService {
   ): Promise<void> {
     const config = this.getConfig();
     if (!config) {
-      onError(new Error('AI not configured. Please configure Claude or Gemini.'));
+      // Use mock streaming if not configured
+      const { getMockResponse, simulateTyping } = await import('./mockAi');
+      const lastUserMessage = messages.filter(m => m.role === 'user').pop();
+      const response = getMockResponse(lastUserMessage?.content || '');
+      await simulateTyping(response, onChunk, onComplete);
       return;
     }
 
@@ -253,6 +260,13 @@ class AIService {
   }
 
   async generateDiagram(description: string, type: 'flowchart' | 'sequence' | 'journey' | 'erd' = 'flowchart'): Promise<string> {
+    const config = this.getConfig();
+    if (!config) {
+      // Use mock diagram if not configured
+      const { getMockDiagram } = await import('./mockAi');
+      return getMockDiagram(type);
+    }
+
     const systemPrompt = `You are a Mermaid diagram expert. Generate ONLY valid Mermaid code without markdown code blocks or explanations.`;
     
     const userPrompt = `Create a ${type} diagram for: ${description}
@@ -279,6 +293,13 @@ Return ONLY the Mermaid code, no explanations or markdown formatting.`;
     consistency: number;
     issues: Array<{ type: string; message: string; section?: string }>;
   }> {
+    const config = this.getConfig();
+    if (!config) {
+      // Return mock validation if not configured
+      const { mockResponses } = await import('./mockAi');
+      return mockResponses.validation;
+    }
+
     const systemPrompt = `You are a business requirements validation expert. Analyze documents and provide structured scores.`;
     
     const userPrompt = `Analyze this requirements document and return a JSON response with:
@@ -319,6 +340,13 @@ ${content}`;
   }
 
   async analyzeFile(fileName: string, fileType: string): Promise<string> {
+    const config = this.getConfig();
+    if (!config) {
+      // Return mock file analysis if not configured
+      const { getMockFileAnalysis } = await import('./mockAi');
+      return getMockFileAnalysis(fileType);
+    }
+
     const systemPrompt = `You are a business analyst expert. Extract requirements from uploaded documents.`;
     
     const userPrompt = `Analyze this ${fileType} file (${fileName}) and extract:
